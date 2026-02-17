@@ -210,9 +210,24 @@ export interface SmilePayEcoCashResponse {
   transactionReference?: string;
 }
 
+export interface SmilePayCancelResponse {
+  success: boolean;
+  description?: string;
+  returnUrl?: string;
+}
+
 export interface SmilePayStatusResponse {
-  statusCode: string;
-  statusMessage: string;
-  transactionStatus: string;
-  transactionReference?: string;
+  merchantId?: string;
+  reference?: string;
+  orderReference?: string;
+  itemName?: string;
+  amount?: number;
+  currency?: string;
+  paymentOption?: string;
+  status?: string;
+  createdDate?: string;
+  returnUrl?: string;
+  resultUrl?: string;
+  clientFee?: number;
+  merchantFee?: number;
 }

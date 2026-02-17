@@ -43,24 +43,27 @@ export async function GET(
     // Check status from SmilePay
     try {
       const smilePayStatus = await smilePayService.checkPaymentStatus(orderReference);
-      const mappedStatus = SmilePayService.mapStatusFromSmilePay(smilePayStatus.transactionStatus);
+      const mappedStatus = SmilePayService.mapStatusFromSmilePay(smilePayStatus.status || '');
 
       // Update local status if changed
       if (mappedStatus !== transaction.status) {
         await db.transactions.update(transaction.id, {
           status: mappedStatus,
-          transaction_reference: smilePayStatus.transactionReference || transaction.transaction_reference,
+          transaction_reference: smilePayStatus.reference || transaction.transaction_reference,
         });
       }
 
       return NextResponse.json({
         success: true,
-        order_reference: transaction.order_reference,
-        transaction_reference: smilePayStatus.transactionReference || transaction.transaction_reference,
+        order_reference: smilePayStatus.orderReference || transaction.order_reference,
+        transaction_reference: smilePayStatus.reference || transaction.transaction_reference,
         status: mappedStatus,
-        amount: transaction.amount,
-        currency_code: transaction.currency_code,
-        payment_method: transaction.payment_method,
+        amount: smilePayStatus.amount ?? transaction.amount,
+        currency_code: smilePayStatus.currency || transaction.currency_code,
+        payment_method: smilePayStatus.paymentOption || transaction.payment_method,
+        item_name: smilePayStatus.itemName,
+        client_fee: smilePayStatus.clientFee,
+        merchant_fee: smilePayStatus.merchantFee,
         paid_at: mappedStatus === 'PAID' ? new Date() : null,
       });
     } catch {
