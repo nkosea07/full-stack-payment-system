@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/mock-db';
 import { SmilePayService, smilePayService } from '@/lib/services/smilepay';
-import { ExpressEcoCashRequest } from '@/lib/db/types';
+import { ExpressEcoCashRequest, SmilePayExpressEcoCashRequest } from '@/lib/db/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,25 +49,27 @@ export async function POST(request: NextRequest) {
       payment_method: 'ECO_CASH',
     });
 
-    const smilePayRequest = {
-      currencyCode: SmilePayService.formatCurrencyCode(body.currency_code),
-      amount: body.amount,
+    const smilePayRequest: SmilePayExpressEcoCashRequest = {
       orderReference: orderReference,
-      resultUrl: body.result_url,
+      amount: body.amount,
+      currencyCode: SmilePayService.formatCurrencyCode(body.currency_code),
       returnUrl: body.return_url,
-      phoneNumber: body.phone_number,
-      customer: {
-        firstName: body.customer.first_name,
-        lastName: body.customer.last_name,
-        emailAddress: body.customer.email,
-        phoneNumber: body.customer.phone,
-      },
+      resultUrl: body.result_url,
+      cancelUrl: body.cancel_url,
+      failureUrl: body.failure_url,
+      itemName: body.item_name || 'Payment',
+      itemDescription: body.item_description || 'EcoCash payment',
+      firstName: body.customer.first_name,
+      lastName: body.customer.last_name,
+      mobilePhoneNumber: body.customer.phone,
+      email: body.customer.email,
+      ecocashMobile: body.phone_number,
     };
 
     try {
       const smilePayResponse = await smilePayService.expressCheckoutEcoCash(smilePayRequest);
 
-      if (smilePayResponse.statusCode === '200') {
+      if (smilePayResponse.responseCode === '200') {
         await db.transactions.update(transaction.id, {
           transaction_reference: smilePayResponse.transactionReference,
         });
@@ -88,7 +90,7 @@ export async function POST(request: NextRequest) {
           transaction_id: transaction.id,
           order_reference: orderReference,
           status: 'FAILED',
-          message: smilePayResponse.statusMessage || 'Failed to initiate EcoCash payment',
+          message: smilePayResponse.responseMessage || 'Failed to initiate EcoCash payment',
         });
       }
     } catch {
