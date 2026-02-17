@@ -1,9 +1,23 @@
 -- Payment System Database Schema
 
--- Create enum types
-CREATE TYPE IF NOT EXISTS transaction_status AS ENUM ('PENDING', 'PAID', 'FAILED', 'CANCELLED');
-CREATE TYPE IF NOT EXISTS payment_method_code AS ENUM ('ECO_CASH', 'VISA_MASTERCARD', 'INNBUCKS', 'OMARI', 'SMILE_CASH');
-CREATE TYPE IF NOT EXISTS currency_code AS ENUM ('USD', 'ZWG');
+-- Create enum types (PostgreSQL doesn't support IF NOT EXISTS for CREATE TYPE)
+DO $$ BEGIN
+    CREATE TYPE transaction_status AS ENUM ('PENDING', 'PAID', 'FAILED', 'CANCELLED');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE payment_method_code AS ENUM ('ECO_CASH', 'VISA_MASTERCARD', 'INNBUCKS', 'OMARI', 'SMILE_CASH');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE currency_code AS ENUM ('USD', 'ZWG');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Merchants table
 CREATE TABLE IF NOT EXISTS merchants (
@@ -74,7 +88,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Trigger to automatically update updated_at
+-- Trigger to automatically update updated_at (drop first to avoid duplicate error)
+DROP TRIGGER IF EXISTS update_transactions_updated_at ON transactions;
 CREATE TRIGGER update_transactions_updated_at
     BEFORE UPDATE ON transactions
     FOR EACH ROW

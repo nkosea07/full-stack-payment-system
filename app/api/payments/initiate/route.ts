@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/mock-db';
+import { db, ensureDatabaseInitialized } from '@/lib/db';
 import { SmilePayService, smilePayService } from '@/lib/services/smilepay';
 import { InitiatePaymentRequest } from '@/lib/db/types';
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseInitialized();
     const body: InitiatePaymentRequest = await request.json();
 
     // Validate required fields
