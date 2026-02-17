@@ -5,6 +5,7 @@ import {
   SmilePayResponse,
   SmilePayMpgsResponse,
   SmilePayEcoCashResponse,
+  SmilePayCancelResponse,
   SmilePayStatusResponse,
   CurrencyCode,
   PaymentMethodCode,
@@ -137,8 +138,8 @@ export class SmilePayService {
     );
   }
 
-  async cancelPayment(orderReference: string): Promise<SmilePayResponse> {
-    return this.makeRequest<SmilePayResponse>(
+  async cancelPayment(orderReference: string): Promise<SmilePayCancelResponse> {
+    return this.makeRequest<SmilePayCancelResponse>(
       `/payments-gateway/payments/cancel/${orderReference}`,
       'POST'
     );

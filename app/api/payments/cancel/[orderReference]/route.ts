@@ -38,7 +38,7 @@ export async function POST(
       // Attempt to cancel with SmilePay
       const smilePayResponse = await smilePayService.cancelPayment(orderReference);
 
-      if (smilePayResponse.statusCode === '200') {
+      if (smilePayResponse.success) {
         await db.transactions.update(transaction.id, { status: 'CANCELLED' });
 
         return NextResponse.json({
@@ -46,12 +46,13 @@ export async function POST(
           order_reference: orderReference,
           status: 'CANCELLED',
           message: 'Transaction cancelled successfully',
+          return_url: smilePayResponse.returnUrl,
         });
       } else {
         return NextResponse.json({
           success: false,
           order_reference: orderReference,
-          message: smilePayResponse.statusMessage || 'Failed to cancel transaction',
+          message: smilePayResponse.description || 'Failed to cancel transaction',
         });
       }
     } catch {
