@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/mock-db';
+import { db, ensureDatabaseInitialized } from '@/lib/db';
 import { SmilePayService } from '@/lib/services/smilepay';
 
 interface WebhookPayload {
@@ -13,8 +13,13 @@ interface WebhookPayload {
 
 export async function POST(request: NextRequest) {
   try {
+    // Ensure database is initialized
+    await ensureDatabaseInitialized();
+    
     const body: WebhookPayload = await request.json();
     const signature = request.headers.get('X-Webhook-Signature') || '';
+
+    console.log('Webhook received:', body);
 
     // Validate webhook signature (in production)
     const smilePayService = new SmilePayService();
@@ -27,6 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Find transaction
     const transaction = await db.transactions.findByOrderReference(body.orderReference);
+    console.log('Found transaction:', transaction);
 
     if (!transaction) {
       // Log unknown webhook

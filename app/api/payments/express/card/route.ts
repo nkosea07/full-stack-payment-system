@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/mock-db';
+import { db, ensureDatabaseInitialized } from '@/lib/db';
 import { SmilePayService, smilePayService } from '@/lib/services/smilepay';
 import { ExpressCardRequest, SmilePayExpressCardRequest } from '@/lib/db/types';
 
 export async function POST(request: NextRequest) {
   try {
+    // Ensure database is initialized
+    await ensureDatabaseInitialized();
     const body: ExpressCardRequest = await request.json();
+
+    console.log('Card Payment Request Body:', body);
 
     // Validate required fields
     if (
@@ -86,10 +90,10 @@ export async function POST(request: NextRequest) {
       currencyCode: SmilePayService.formatCurrencyCode(body.currency_code),
       returnUrl: body.return_url,
       resultUrl: body.result_url,
-      cancelUrl: body.cancel_url,
-      failureUrl: body.failure_url,
-      itemName: body.item_name,
-      itemDescription: body.item_description,
+      cancelUrl: body.cancel_url || body.return_url,
+      failureUrl: body.failure_url || body.return_url,
+      itemName: body.item_name || `Payment-${orderReference}`,
+      itemDescription: body.item_description || `Card payment for order ${orderReference}`,
       pan: cardNumber,
       expMonth: body.expiry_month,
       expYear: body.expiry_year.length === 2 ? `20${body.expiry_year}` : body.expiry_year,
@@ -100,6 +104,8 @@ export async function POST(request: NextRequest) {
       email: body.customer.email,
       paymentMethod: 'CARD',
     };
+
+    console.log('Mapped SmilePay Request:', smilePayRequest);
 
     try {
       const smilePayResponse = await smilePayService.expressCheckoutCard(smilePayRequest);
@@ -160,7 +166,8 @@ export async function POST(request: NextRequest) {
           message: smilePayResponse.responseMessage || 'Failed to initiate card payment',
         });
       }
-    } catch {
+    } catch (error) {
+      console.log('API Error, falling back to sandbox simulation:', error);
       // Sandbox simulation - simulate 3DS flow
       await db.transactions.update(transaction.id, {
         transaction_reference: `CARD-SIM-${Date.now()}`,

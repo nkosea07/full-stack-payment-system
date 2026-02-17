@@ -30,6 +30,12 @@ export class SmilePayService {
         : 'https://zbnet.zb.co.zw/wallet_sandbox_api';
     this.apiKey = process.env.SMILEPAY_API_KEY || '';
     this.merchantId = process.env.SMILEPAY_MERCHANT_ID || '';
+
+
+    // Validate environment variables
+    if (!this.apiKey || !this.merchantId) {
+      console.warn('SmilePay API credentials not configured. Using sandbox mode simulation.');
+    }
   }
 
   private async makeRequest<T>(
@@ -37,8 +43,14 @@ export class SmilePayService {
     method: 'GET' | 'POST' = 'POST',
     body?: Record<string, unknown>
   ): Promise<T> {
+    // Check if credentials are configured
+    if (!this.apiKey || !this.merchantId) {
+      throw new Error('SmilePay API credentials not configured');
+    }
+
     const url = `${this.baseURL}${endpoint}`;
     
+   
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'X-API-Key': this.apiKey,
@@ -57,6 +69,17 @@ export class SmilePayService {
     try {
       const response = await fetch(url, options);
       const data = await response.json();
+      
+      console.log('SmilePay API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+      
       return data as T;
     } catch (error) {
       console.error('SmilePay API Error:', error);
