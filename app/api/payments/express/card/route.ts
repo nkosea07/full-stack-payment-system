@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/mock-db';
 import { SmilePayService, smilePayService } from '@/lib/services/smilepay';
-import { ExpressCardRequest } from '@/lib/db/types';
+import { ExpressCardRequest, SmilePayExpressCardRequest } from '@/lib/db/types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,33 +80,36 @@ export async function POST(request: NextRequest) {
       payment_method: 'VISA_MASTERCARD',
     });
 
-    const smilePayRequest = {
-      currencyCode: SmilePayService.formatCurrencyCode(body.currency_code),
-      amount: body.amount,
+    const smilePayRequest: SmilePayExpressCardRequest = {
       orderReference: orderReference,
-      resultUrl: body.result_url,
+      amount: body.amount,
+      currencyCode: SmilePayService.formatCurrencyCode(body.currency_code),
       returnUrl: body.return_url,
-      cardNumber: cardNumber,
-      expiryMonth: body.expiry_month,
-      expiryYear: body.expiry_year.length === 2 ? `20${body.expiry_year}` : body.expiry_year,
-      cvv: body.cvv,
-      customer: {
-        firstName: body.customer.first_name,
-        lastName: body.customer.last_name,
-        emailAddress: body.customer.email,
-        phoneNumber: body.customer.phone,
-      },
+      resultUrl: body.result_url,
+      cancelUrl: body.cancel_url,
+      failureUrl: body.failure_url,
+      itemName: body.item_name,
+      itemDescription: body.item_description,
+      pan: cardNumber,
+      expMonth: body.expiry_month,
+      expYear: body.expiry_year.length === 2 ? `20${body.expiry_year}` : body.expiry_year,
+      securityCode: body.cvv,
+      firstName: body.customer.first_name,
+      lastName: body.customer.last_name,
+      mobilePhoneNumber: body.customer.phone,
+      email: body.customer.email,
+      paymentMethod: 'CARD',
     };
 
     try {
       const smilePayResponse = await smilePayService.expressCheckoutCard(smilePayRequest);
 
-      if (smilePayResponse.statusCode === '200') {
+      if (smilePayResponse.responseCode === '200') {
         await db.transactions.update(transaction.id, {
           transaction_reference: smilePayResponse.transactionReference,
         });
 
-        // Check if 3DS redirect is needed
+        // Check if 3DS redirect is needed (legacy redirectHtml format)
         if (smilePayResponse.redirectHtml) {
           return NextResponse.json({
             success: true,
@@ -119,12 +122,31 @@ export async function POST(request: NextRequest) {
           });
         }
 
+        // Check for 3DS2 authentication via customizedHtml
+        if (smilePayResponse.customizedHtml?.['3ds2']) {
+          return NextResponse.json({
+            success: true,
+            transaction_id: transaction.id,
+            order_reference: orderReference,
+            transaction_reference: smilePayResponse.transactionReference,
+            status: 'PENDING',
+            three_ds: {
+              acs_url: smilePayResponse.customizedHtml['3ds2'].acsUrl,
+              creq: smilePayResponse.customizedHtml['3ds2'].cReq,
+            },
+            gateway_recommendation: smilePayResponse.gatewayRecommendation,
+            authentication_status: smilePayResponse.authenticationStatus,
+            message: 'Card payment initiated. 3DS2 verification required.',
+          });
+        }
+
         return NextResponse.json({
           success: true,
           transaction_id: transaction.id,
           order_reference: orderReference,
           transaction_reference: smilePayResponse.transactionReference,
           status: 'PENDING',
+          gateway_recommendation: smilePayResponse.gatewayRecommendation,
           message: 'Card payment initiated successfully.',
         });
       } else {
@@ -135,7 +157,7 @@ export async function POST(request: NextRequest) {
           transaction_id: transaction.id,
           order_reference: orderReference,
           status: 'FAILED',
-          message: smilePayResponse.statusMessage || 'Failed to initiate card payment',
+          message: smilePayResponse.responseMessage || 'Failed to initiate card payment',
         });
       }
     } catch {

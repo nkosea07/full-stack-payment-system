@@ -3,8 +3,11 @@ import {
   SmilePayExpressEcoCashRequest,
   SmilePayExpressCardRequest,
   SmilePayResponse,
+  SmilePayMpgsResponse,
+  SmilePayEcoCashResponse,
   SmilePayStatusResponse,
   CurrencyCode,
+  PaymentMethodCode,
 } from '@/lib/db/types';
 
 // Currency code mapping
@@ -77,37 +80,52 @@ export class SmilePayService {
     );
   }
 
-  async expressCheckoutEcoCash(data: SmilePayExpressEcoCashRequest): Promise<SmilePayResponse> {
-    return this.makeRequest<SmilePayResponse>(
+  async expressCheckoutEcoCash(data: SmilePayExpressEcoCashRequest): Promise<SmilePayEcoCashResponse> {
+    return this.makeRequest<SmilePayEcoCashResponse>(
       '/payments-gateway/payments/express-checkout/ecocash',
       'POST',
       {
-        currencyCode: data.currencyCode,
-        amount: data.amount,
         orderReference: data.orderReference,
-        resultUrl: data.resultUrl,
+        amount: data.amount,
+        currencyCode: data.currencyCode,
         returnUrl: data.returnUrl,
-        phoneNumber: data.phoneNumber,
-        customer: data.customer,
+        resultUrl: data.resultUrl,
+        cancelUrl: data.cancelUrl,
+        failureUrl: data.failureUrl,
+        itemName: data.itemName,
+        itemDescription: data.itemDescription,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        mobilePhoneNumber: data.mobilePhoneNumber,
+        email: data.email,
+        ecocashMobile: data.ecocashMobile,
       }
     );
   }
 
-  async expressCheckoutCard(data: SmilePayExpressCardRequest): Promise<SmilePayResponse> {
-    return this.makeRequest<SmilePayResponse>(
+  async expressCheckoutCard(data: SmilePayExpressCardRequest): Promise<SmilePayMpgsResponse> {
+    return this.makeRequest<SmilePayMpgsResponse>(
       '/payments-gateway/payments/express-checkout/mpgs',
       'POST',
       {
-        currencyCode: data.currencyCode,
-        amount: data.amount,
         orderReference: data.orderReference,
-        resultUrl: data.resultUrl,
+        amount: data.amount,
+        currencyCode: data.currencyCode,
         returnUrl: data.returnUrl,
-        cardNumber: data.cardNumber,
-        expiryMonth: data.expiryMonth,
-        expiryYear: data.expiryYear,
-        cvv: data.cvv,
-        customer: data.customer,
+        resultUrl: data.resultUrl,
+        cancelUrl: data.cancelUrl,
+        failureUrl: data.failureUrl,
+        itemName: data.itemName,
+        itemDescription: data.itemDescription,
+        pan: data.pan,
+        expMonth: data.expMonth,
+        expYear: data.expYear,
+        securityCode: data.securityCode,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        mobilePhoneNumber: data.mobilePhoneNumber,
+        email: data.email,
+        paymentMethod: data.paymentMethod,
       }
     );
   }
@@ -152,6 +170,19 @@ export class SmilePayService {
       default:
         return 'PENDING';
     }
+  }
+
+  static mapPaymentMethodToZbPay(
+    code: PaymentMethodCode
+  ): 'WALLETPLUS' | 'ECOCASH' | 'INNBUCKS' | 'CARD' | 'OMARI' | 'ONEMONEY' {
+    const mapping: Record<PaymentMethodCode, 'WALLETPLUS' | 'ECOCASH' | 'INNBUCKS' | 'CARD' | 'OMARI' | 'ONEMONEY'> = {
+      VISA_MASTERCARD: 'CARD',
+      ECO_CASH: 'ECOCASH',
+      INNBUCKS: 'INNBUCKS',
+      OMARI: 'OMARI',
+      SMILE_CASH: 'WALLETPLUS',
+    };
+    return mapping[code];
   }
 
   validateWebhookSignature(payload: string, signature: string): boolean {

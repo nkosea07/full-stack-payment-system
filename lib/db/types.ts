@@ -79,6 +79,10 @@ export interface ExpressEcoCashRequest {
   phone_number: string;
   return_url: string;
   result_url: string;
+  cancel_url?: string;
+  failure_url?: string;
+  item_name?: string;
+  item_description?: string;
 }
 
 export interface ExpressCardRequest {
@@ -92,6 +96,11 @@ export interface ExpressCardRequest {
   cvv: string;
   return_url: string;
   result_url: string;
+  cancel_url?: string;
+  failure_url?: string;
+  item_name?: string;
+  item_description?: string;
+  payment_method?: string;
 }
 
 export interface PaymentResponse {
@@ -133,36 +142,41 @@ export interface SmilePayInitiateRequest {
 }
 
 export interface SmilePayExpressEcoCashRequest {
-  currencyCode: string;
-  amount: number;
   orderReference: string;
+  amount: number;
+  currencyCode: string;
+  returnUrl?: string;
   resultUrl: string;
-  returnUrl: string;
-  phoneNumber: string;
-  customer: {
-    firstName: string;
-    lastName: string;
-    emailAddress: string;
-    phoneNumber: string;
-  };
+  cancelUrl?: string;
+  failureUrl?: string;
+  itemName: string;
+  itemDescription: string;
+  firstName?: string;
+  lastName?: string;
+  mobilePhoneNumber?: string;
+  email?: string;
+  ecocashMobile: string;
 }
 
 export interface SmilePayExpressCardRequest {
-  currencyCode: string;
-  amount: number;
   orderReference: string;
-  resultUrl: string;
+  amount: number;
+  currencyCode: string;
   returnUrl: string;
-  cardNumber: string;
-  expiryMonth: string;
-  expiryYear: string;
-  cvv: string;
-  customer: {
-    firstName: string;
-    lastName: string;
-    emailAddress: string;
-    phoneNumber: string;
-  };
+  resultUrl: string;
+  cancelUrl?: string;
+  failureUrl?: string;
+  itemName?: string;
+  itemDescription?: string;
+  pan: string;
+  expMonth: string;
+  expYear: string;
+  securityCode: string;
+  firstName: string;
+  lastName: string;
+  mobilePhoneNumber: string;
+  email: string;
+  paymentMethod?: 'WALLETPLUS' | 'ECOCASH' | 'INNBUCKS' | 'CARD' | 'OMARI' | 'ONEMONEY';
 }
 
 export interface SmilePayResponse {
@@ -171,6 +185,29 @@ export interface SmilePayResponse {
   transactionReference?: string;
   paymentUrl?: string;
   redirectHtml?: string;
+}
+
+export interface SmilePayMpgsResponse {
+  responseCode: string;
+  responseMessage: string;
+  status?: string;
+  transactionReference?: string;
+  gatewayRecommendation?: string;
+  authenticationStatus?: string;
+  redirectHtml?: string;
+  customizedHtml?: {
+    '3ds2': {
+      acsUrl: string;
+      cReq: string;
+    };
+  };
+}
+
+export interface SmilePayEcoCashResponse {
+  responseCode: string;
+  responseMessage: string;
+  status?: string;
+  transactionReference?: string;
 }
 
 export interface SmilePayStatusResponse {
