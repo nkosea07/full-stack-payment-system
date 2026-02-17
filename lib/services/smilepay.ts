@@ -69,17 +69,13 @@ export class SmilePayService {
     try {
       const response = await fetch(url, options);
       const data = await response.json();
-      
+
       console.log('SmilePay API Response:', {
         status: response.status,
         statusText: response.statusText,
         data
       });
-      
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-      }
-      
+
       return data as T;
     } catch (error) {
       console.error('SmilePay API Error:', error);

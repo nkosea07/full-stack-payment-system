@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db/mock-db';
+import { db, ensureDatabaseInitialized } from '@/lib/db';
 
 export async function GET() {
   try {
+    await ensureDatabaseInitialized();
     const stats = await db.stats.getOverview();
 
     return NextResponse.json({

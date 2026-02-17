@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/mock-db';
+import { db, ensureDatabaseInitialized } from '@/lib/db';
 import { TransactionStatus, PaymentMethodCode } from '@/lib/db/types';
 
 export async function GET(request: NextRequest) {
   try {
+    await ensureDatabaseInitialized();
     const searchParams = request.nextUrl.searchParams;
     
     // Parse filters

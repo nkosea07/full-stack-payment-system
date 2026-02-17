@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/mock-db';
+import { db, ensureDatabaseInitialized } from '@/lib/db';
 import { TransactionStatus } from '@/lib/db/types';
 
 // Sandbox-only endpoint to simulate payment status changes
 export async function POST(request: NextRequest) {
   try {
+    await ensureDatabaseInitialized();
     const body = await request.json();
     const { order_reference, status } = body as {
       order_reference: string;

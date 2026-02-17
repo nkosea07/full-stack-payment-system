@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db/mock-db';
+import { db, ensureDatabaseInitialized } from '@/lib/db';
 import { smilePayService } from '@/lib/services/smilepay';
 
 export async function POST(
@@ -7,6 +7,7 @@ export async function POST(
   { params }: { params: Promise<{ orderReference: string }> }
 ) {
   try {
+    await ensureDatabaseInitialized();
     const { orderReference } = await params;
 
     if (!orderReference) {
