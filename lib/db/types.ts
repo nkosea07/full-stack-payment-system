@@ -1,8 +1,24 @@
 // Database types for the payment system
 
-export type TransactionStatus = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED';
-export type PaymentMethodCode = 'ECO_CASH' | 'VISA_MASTERCARD' | 'INNBUCKS' | 'OMARI' | 'SMILE_CASH';
-export type CurrencyCode = 'USD' | 'ZWG';
+// Re-export shared types from the SmilePay SDK so existing imports continue to work
+export type {
+  CurrencyCode,
+  PaymentMethodCode,
+  TransactionStatus,
+  SmilePayInitiateRequest,
+  SmilePayResponse,
+  SmilePayExpressEcoCashRequest,
+  SmilePayEcoCashResponse,
+  SmilePayExpressCardRequest,
+  SmilePayMpgsResponse,
+  SmilePayExpressZbRequest,
+  SmilePayZbConfirmRequest,
+  SmilePayZbResponse,
+  SmilePayCancelResponse,
+  SmilePayStatusResponse,
+} from '@/lib/smilepay';
+
+import type { CurrencyCode, PaymentMethodCode, TransactionStatus } from '@/lib/smilepay';
 
 export interface Merchant {
   id: string;
@@ -126,99 +142,7 @@ export interface TransactionStatusResponse {
   paid_at: Date | null;
 }
 
-// SmilePay API types
-export interface SmilePayInitiateRequest {
-  orderReference: string;
-  amount: number;
-  returnUrl: string;
-  resultUrl: string;
-  itemName: string;
-  itemDescription: string;
-  currencyCode: string;
-  firstName?: string;
-  lastName?: string;
-  mobilePhoneNumber?: string;
-  email?: string;
-  paymentMethod?: 'WALLETPLUS' | 'ECOCASH' | 'INNBUCKS' | 'CARD' | 'OMARI' | 'ONEMONEY';
-  cancelUrl?: string;
-  failureUrl?: string;
-}
-
-export interface SmilePayExpressEcoCashRequest {
-  orderReference: string;
-  amount: number;
-  currencyCode: string;
-  returnUrl?: string;
-  resultUrl: string;
-  cancelUrl?: string;
-  failureUrl?: string;
-  itemName: string;
-  itemDescription: string;
-  firstName?: string;
-  lastName?: string;
-  mobilePhoneNumber?: string;
-  email?: string;
-  ecocashMobile: string;
-}
-
-export interface SmilePayExpressCardRequest {
-  orderReference: string;
-  amount: number;
-  currencyCode: string;
-  returnUrl: string;
-  resultUrl: string;
-  cancelUrl?: string;
-  failureUrl?: string;
-  itemName?: string;
-  itemDescription?: string;
-  pan: string;
-  expMonth: string;
-  expYear: string;
-  securityCode: string;
-  firstName: string;
-  lastName: string;
-  mobilePhoneNumber: string;
-  email: string;
-  paymentMethod?: 'WALLETPLUS' | 'ECOCASH' | 'INNBUCKS' | 'CARD' | 'OMARI' | 'ONEMONEY';
-}
-
-export interface SmilePayResponse {
-  responseCode: string;
-  responseMessage: string;
-  paymentUrl?: string;
-  transactionReference?: string;
-}
-
-export interface SmilePayMpgsResponse {
-  responseCode: string;
-  responseMessage: string;
-  status?: string;
-  transactionReference?: string;
-  gatewayRecommendation?: string;
-  authenticationStatus?: string;
-  redirectHtml?: string;
-  customizedHtml?: {
-    '3ds2': {
-      acsUrl: string;
-      cReq: string;
-    };
-  };
-}
-
-export interface SmilePayEcoCashResponse {
-  responseCode: string;
-  responseMessage: string;
-  status?: string;
-  transactionReference?: string;
-}
-
-export interface SmilePayCancelResponse {
-  success: boolean;
-  description?: string;
-  returnUrl?: string;
-}
-
-// SmileCash (ZB Wallet) types
+// App-level SmileCash (ZB Wallet) request types
 export interface ExpressZbPaymentRequest {
   amount: number;
   currency_code: CurrencyCode;
@@ -236,49 +160,4 @@ export interface ExpressZbPaymentRequest {
 export interface ExpressZbPaymentConfirmRequest {
   otp: string;
   transaction_reference: string;
-}
-
-export interface SmilePayExpressZbRequest {
-  orderReference: string;
-  amount: number;
-  currencyCode: string;
-  returnUrl: string;
-  resultUrl: string;
-  cancelUrl?: string;
-  failureUrl?: string;
-  itemName: string;
-  itemDescription: string;
-  firstName?: string;
-  lastName?: string;
-  mobilePhoneNumber?: string;
-  email?: string;
-  zbWalletMobile: string;
-}
-
-export interface SmilePayZbConfirmRequest {
-  otp: string;
-  transactionReference: string;
-}
-
-export interface SmilePayZbResponse {
-  responseCode: string;
-  responseMessage: string;
-  status?: string;
-  transactionReference?: string;
-}
-
-export interface SmilePayStatusResponse {
-  merchantId?: string;
-  reference?: string;
-  orderReference?: string;
-  itemName?: string;
-  amount?: number;
-  currency?: string;
-  paymentOption?: string;
-  status?: string;
-  createdDate?: string;
-  returnUrl?: string;
-  resultUrl?: string;
-  clientFee?: number;
-  merchantFee?: number;
 }

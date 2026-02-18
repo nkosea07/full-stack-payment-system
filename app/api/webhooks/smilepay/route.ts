@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, ensureDatabaseInitialized } from '@/lib/db';
-import { SmilePayService } from '@/lib/services/smilepay';
+import { SmilePayService, smilePayService } from '@/lib/services/smilepay';
 
 interface WebhookPayload {
   orderReference: string;
@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     console.log('Webhook received:', body);
 
     // Validate webhook signature (in production)
-    const smilePayService = new SmilePayService();
     if (!smilePayService.validateWebhookSignature(JSON.stringify(body), signature)) {
       return NextResponse.json(
         { success: false, message: 'Invalid webhook signature' },
