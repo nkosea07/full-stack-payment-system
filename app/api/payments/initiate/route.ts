@@ -82,8 +82,16 @@ export async function POST(request: NextRequest) {
           transaction_reference: smilePayResponse.transactionReference,
         });
 
-        // Redirect user to SmilePay hosted payment page
-        return NextResponse.redirect(smilePayResponse.paymentUrl);
+        // Return payment URL for client-side redirect to SmilePay hosted payment page
+        return NextResponse.json({
+          success: true,
+          transaction_id: transaction.id,
+          order_reference: orderReference,
+          transaction_reference: smilePayResponse.transactionReference,
+          payment_url: smilePayResponse.paymentUrl,
+          status: 'PENDING',
+          message: 'Payment initiated successfully',
+        });
       } else {
         // Mark transaction as failed
         await db.transactions.update(transaction.id, { status: 'FAILED' });
