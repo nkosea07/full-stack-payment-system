@@ -9,7 +9,7 @@ DATABASE_URL=postgresql://username:password@localhost:5432/payment_system
 # SmilePay Configuration
 SMILEPAY_ENVIRONMENT=sandbox
 SMILEPAY_API_KEY=your_api_key_here
-SMILEPAY_MERCHANT_ID=your_merchant_id_here
+SMILEPAY_API_SECRET=your_api_secret_here
 
 # Webhook Configuration
 WEBHOOK_SECRET=your_webhook_secret_here

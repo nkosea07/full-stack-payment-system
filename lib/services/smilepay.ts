@@ -20,7 +20,7 @@ const CURRENCY_CODES: Record<CurrencyCode, string> = {
 export class SmilePayService {
   private baseURL: string;
   private apiKey: string;
-  private merchantId: string;
+  private apiSecret: string;
 
   constructor() {
     const env = process.env.SMILEPAY_ENVIRONMENT || 'sandbox';
@@ -29,11 +29,10 @@ export class SmilePayService {
         ? 'https://zbnet.zb.co.zw/wallet_api'
         : 'https://zbnet.zb.co.zw/wallet_sandbox_api';
     this.apiKey = process.env.SMILEPAY_API_KEY || '';
-    this.merchantId = process.env.SMILEPAY_MERCHANT_ID || '';
-
+    this.apiSecret = process.env.SMILEPAY_API_SECRET || '';
 
     // Validate environment variables
-    if (!this.apiKey || !this.merchantId) {
+    if (!this.apiKey || !this.apiSecret) {
       console.warn('SmilePay API credentials not configured. Using sandbox mode simulation.');
     }
   }
@@ -44,17 +43,16 @@ export class SmilePayService {
     body?: Record<string, unknown>
   ): Promise<T> {
     // Check if credentials are configured
-    if (!this.apiKey || !this.merchantId) {
+    if (!this.apiKey || !this.apiSecret) {
       throw new Error('SmilePay API credentials not configured');
     }
 
     const url = `${this.baseURL}${endpoint}`;
-    
-   
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'X-API-Key': this.apiKey,
-      'X-Merchant-ID': this.merchantId,
+      'x-api-key': this.apiKey,
+      'x-api-secret': this.apiSecret,
     };
 
     const options: RequestInit = {
@@ -88,14 +86,20 @@ export class SmilePayService {
       '/payments-gateway/payments/initiate-transaction',
       'POST',
       {
-        currencyCode: data.currencyCode,
-        amount: data.amount,
         orderReference: data.orderReference,
-        resultUrl: data.resultUrl,
+        amount: data.amount,
         returnUrl: data.returnUrl,
+        resultUrl: data.resultUrl,
+        itemName: data.itemName,
+        itemDescription: data.itemDescription,
+        currencyCode: data.currencyCode,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        mobilePhoneNumber: data.mobilePhoneNumber,
+        email: data.email,
+        paymentMethod: data.paymentMethod,
         cancelUrl: data.cancelUrl,
         failureUrl: data.failureUrl,
-        customer: data.customer,
       }
     );
   }

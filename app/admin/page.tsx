@@ -208,17 +208,17 @@ export default function AdminPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="merchantId" className="flex items-center gap-2">
+                    <Label htmlFor="apiSecret" className="flex items-center gap-2">
                       <Globe className="h-4 w-4" />
-                      Merchant ID
+                      API Secret
                     </Label>
                     <Input
-                      id="merchantId"
-                      placeholder="Enter your Merchant ID"
+                      id="apiSecret"
+                      placeholder="Enter your API Secret"
                       defaultValue=""
                     />
                     <p className="text-xs text-muted-foreground">
-                      Set via SMILEPAY_MERCHANT_ID environment variable
+                      Set via SMILEPAY_API_SECRET environment variable
                     </p>
                   </div>
                 </div>
