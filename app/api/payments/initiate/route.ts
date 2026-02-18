@@ -55,25 +55,28 @@ export async function POST(request: NextRequest) {
     // For standard checkout, redirect to SmilePay hosted page
     if (body.checkout_type === 'standard') {
       const smilePayRequest = {
-        currencyCode: SmilePayService.formatCurrencyCode(body.currency_code),
-        amount: body.amount,
         orderReference: orderReference,
-        resultUrl: body.result_url,
+        amount: body.amount,
         returnUrl: body.return_url,
+        resultUrl: body.result_url,
+        itemName: body.item_name || 'Payment',
+        itemDescription: body.item_description || '',
+        currencyCode: SmilePayService.formatCurrencyCode(body.currency_code),
+        firstName: body.customer.first_name,
+        lastName: body.customer.last_name,
+        mobilePhoneNumber: body.customer.phone,
+        email: body.customer.email,
+        paymentMethod: body.payment_method
+          ? SmilePayService.mapPaymentMethodToZbPay(body.payment_method)
+          : undefined,
         cancelUrl: body.cancel_url,
         failureUrl: body.failure_url,
-        customer: {
-          firstName: body.customer.first_name,
-          lastName: body.customer.last_name,
-          emailAddress: body.customer.email,
-          phoneNumber: body.customer.phone,
-        },
       };
 
       try {
         const smilePayResponse = await smilePayService.initiateStandardCheckout(smilePayRequest);
 
-        if (smilePayResponse.statusCode === '200' || smilePayResponse.paymentUrl) {
+        if (smilePayResponse.paymentUrl) {
           // Update transaction with payment URL and reference
           await db.transactions.update(transaction.id, {
             payment_url: smilePayResponse.paymentUrl,
@@ -98,7 +101,7 @@ export async function POST(request: NextRequest) {
             transaction_id: transaction.id,
             order_reference: orderReference,
             status: 'FAILED',
-            message: smilePayResponse.statusMessage || 'Failed to initiate payment',
+            message: smilePayResponse.responseMessage || 'Failed to initiate payment',
           });
         }
       } catch {

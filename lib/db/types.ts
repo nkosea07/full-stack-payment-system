@@ -69,6 +69,8 @@ export interface InitiatePaymentRequest {
   failure_url?: string;
   checkout_type: 'standard' | 'express';
   payment_method?: PaymentMethodCode;
+  item_name?: string;
+  item_description?: string;
 }
 
 export interface ExpressEcoCashRequest {
@@ -126,19 +128,20 @@ export interface TransactionStatusResponse {
 
 // SmilePay API types
 export interface SmilePayInitiateRequest {
-  currencyCode: string;
-  amount: number;
   orderReference: string;
-  resultUrl: string;
+  amount: number;
   returnUrl: string;
+  resultUrl: string;
+  itemName: string;
+  itemDescription: string;
+  currencyCode: string;
+  firstName?: string;
+  lastName?: string;
+  mobilePhoneNumber?: string;
+  email?: string;
+  paymentMethod?: 'WALLETPLUS' | 'ECOCASH' | 'INNBUCKS' | 'CARD' | 'OMARI' | 'ONEMONEY';
   cancelUrl?: string;
   failureUrl?: string;
-  customer: {
-    firstName: string;
-    lastName: string;
-    emailAddress: string;
-    phoneNumber: string;
-  };
 }
 
 export interface SmilePayExpressEcoCashRequest {
@@ -180,11 +183,10 @@ export interface SmilePayExpressCardRequest {
 }
 
 export interface SmilePayResponse {
-  statusCode: string;
-  statusMessage: string;
-  transactionReference?: string;
+  responseCode: string;
+  responseMessage: string;
   paymentUrl?: string;
-  redirectHtml?: string;
+  transactionReference?: string;
 }
 
 export interface SmilePayMpgsResponse {
@@ -214,6 +216,55 @@ export interface SmilePayCancelResponse {
   success: boolean;
   description?: string;
   returnUrl?: string;
+}
+
+// SmileCash (ZB Wallet) types
+export interface ExpressZbPaymentRequest {
+  amount: number;
+  currency_code: CurrencyCode;
+  order_reference?: string;
+  customer: CustomerDetails;
+  zb_wallet_mobile: string;
+  return_url: string;
+  result_url: string;
+  cancel_url?: string;
+  failure_url?: string;
+  item_name?: string;
+  item_description?: string;
+}
+
+export interface ExpressZbPaymentConfirmRequest {
+  otp: string;
+  transaction_reference: string;
+}
+
+export interface SmilePayExpressZbRequest {
+  orderReference: string;
+  amount: number;
+  currencyCode: string;
+  returnUrl: string;
+  resultUrl: string;
+  cancelUrl?: string;
+  failureUrl?: string;
+  itemName: string;
+  itemDescription: string;
+  firstName?: string;
+  lastName?: string;
+  mobilePhoneNumber?: string;
+  email?: string;
+  zbWalletMobile: string;
+}
+
+export interface SmilePayZbConfirmRequest {
+  otp: string;
+  transactionReference: string;
+}
+
+export interface SmilePayZbResponse {
+  responseCode: string;
+  responseMessage: string;
+  status?: string;
+  transactionReference?: string;
 }
 
 export interface SmilePayStatusResponse {
