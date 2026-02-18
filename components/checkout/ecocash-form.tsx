@@ -29,7 +29,8 @@ export function EcoCashForm() {
   const [currentOrderRef, setCurrentOrderRef] = useState<string | null>(null);
 
   const formatAmount = (amt: number, curr: string) => {
-    return curr === 'USD' ? `$${amt.toFixed(2)}` : `ZWG ${amt.toFixed(2)}`;
+    const n = Number(amt);
+    return curr === 'USD' ? `$${n.toFixed(2)}` : `ZWG ${n.toFixed(2)}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
