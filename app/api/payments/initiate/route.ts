@@ -73,54 +73,27 @@ export async function POST(request: NextRequest) {
         failureUrl: body.failure_url,
       };
 
-      try {
-        const smilePayResponse = await smilePayService.initiateStandardCheckout(smilePayRequest);
+      const smilePayResponse = await smilePayService.initiateStandardCheckout(smilePayRequest);
 
-        if (smilePayResponse.paymentUrl) {
-          // Update transaction with payment URL and reference
-          await db.transactions.update(transaction.id, {
-            payment_url: smilePayResponse.paymentUrl,
-            transaction_reference: smilePayResponse.transactionReference,
-          });
-
-          return NextResponse.json({
-            success: true,
-            transaction_id: transaction.id,
-            order_reference: orderReference,
-            transaction_reference: smilePayResponse.transactionReference,
-            payment_url: smilePayResponse.paymentUrl,
-            status: 'PENDING',
-            message: 'Payment initiated successfully',
-          });
-        } else {
-          // Mark transaction as failed
-          await db.transactions.update(transaction.id, { status: 'FAILED' });
-
-          return NextResponse.json({
-            success: false,
-            transaction_id: transaction.id,
-            order_reference: orderReference,
-            status: 'FAILED',
-            message: smilePayResponse.responseMessage || 'Failed to initiate payment',
-          });
-        }
-      } catch {
-        // For sandbox/demo mode, return simulated response
-        const simulatedPaymentUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/checkout/payment?ref=${orderReference}`;
-        
+      if (smilePayResponse.paymentUrl) {
+        // Update transaction with payment URL and reference
         await db.transactions.update(transaction.id, {
-          payment_url: simulatedPaymentUrl,
-          transaction_reference: `SIM-${Date.now()}`,
+          payment_url: smilePayResponse.paymentUrl,
+          transaction_reference: smilePayResponse.transactionReference,
         });
 
+        // Redirect user to SmilePay hosted payment page
+        return NextResponse.redirect(smilePayResponse.paymentUrl);
+      } else {
+        // Mark transaction as failed
+        await db.transactions.update(transaction.id, { status: 'FAILED' });
+
         return NextResponse.json({
-          success: true,
+          success: false,
           transaction_id: transaction.id,
           order_reference: orderReference,
-          transaction_reference: `SIM-${Date.now()}`,
-          payment_url: simulatedPaymentUrl,
-          status: 'PENDING',
-          message: 'Payment initiated (sandbox mode)',
+          status: 'FAILED',
+          message: smilePayResponse.responseMessage || 'Failed to initiate payment',
         });
       }
     }
