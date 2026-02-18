@@ -69,7 +69,7 @@ export function PaymentMethodSelector() {
         setPaymentUrl(data.payment_url);
         
         if (data.payment_url) {
-          // In sandbox, redirect to simulated payment page
+          // Redirect to SmilePay hosted payment page
           window.location.href = data.payment_url;
         } else {
           setStep('processing');
